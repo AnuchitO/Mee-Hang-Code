@@ -36,6 +36,14 @@ type SkillStore struct {
 	Tags        pq.StringArray
 }
 
+func (s SkillStore) levels() ([]Level, error) {
+	var levels []Level
+	if err := json.Unmarshal(s.Levels, &levels); err != nil {
+		return nil, err
+	}
+	return levels, nil
+}
+
 func (s SkillStore) toSkill(levels []Level) Skill {
 	return Skill{
 		Key:         s.Key,
@@ -54,8 +62,9 @@ func findSkillByKey(db *sql.DB, key string) (Skill, error) {
 	if err := row.Scan(&s.Key, &s.Name, &s.Description, &s.Logo, &s.Levels, &s.Tags); err != nil {
 		return Skill{}, err
 	}
-	var levels []Level
-	if err := json.Unmarshal(s.Levels, &levels); err != nil {
+
+	levels, err := s.levels()
+	if err != nil {
 		return Skill{}, err
 	}
 

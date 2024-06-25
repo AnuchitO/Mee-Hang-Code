@@ -27,30 +27,34 @@ type Skill struct {
 	Tags        []string `json:"tags"`
 }
 
+type SkillStore struct {
+	Key         string
+	Name        string
+	Description string
+	Logo        string
+	Levels      []byte
+	Tags        pq.StringArray
+}
+
 func findSkillByKey(db *sql.DB, key string) (Skill, error) {
 	row := db.QueryRow("SELECT key, name, description, logo, levels, tags FROM skills WHERE key = $1", key)
 
-	var Key string
-	var Name string
-	var Description string
-	var Logo string
-	var Levels []byte
-	var Tags pq.StringArray
-	if err := row.Scan(&Key, &Name, &Description, &Logo, &Levels, &Tags); err != nil {
+	s := SkillStore{}
+	if err := row.Scan(&s.Key, &s.Name, &s.Description, &s.Logo, &s.Levels, &s.Tags); err != nil {
 		return Skill{}, err
 	}
 	var levels []Level
-	if err := json.Unmarshal(Levels, &levels); err != nil {
+	if err := json.Unmarshal(s.Levels, &levels); err != nil {
 		return Skill{}, err
 	}
 
 	skill := Skill{
-		Key:         Key,
-		Name:        Name,
-		Description: Description,
-		Logo:        Logo,
+		Key:         s.Key,
+		Name:        s.Name,
+		Description: s.Description,
+		Logo:        s.Logo,
 		Levels:      levels,
-		Tags:        Tags,
+		Tags:        s.Tags,
 	}
 
 	return skill, nil

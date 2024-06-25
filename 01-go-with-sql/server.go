@@ -36,6 +36,17 @@ type SkillStore struct {
 	Tags        pq.StringArray
 }
 
+func (s SkillStore) toSkill(levels []Level) Skill {
+	return Skill{
+		Key:         s.Key,
+		Name:        s.Name,
+		Description: s.Description,
+		Logo:        s.Logo,
+		Levels:      levels,
+		Tags:        s.Tags,
+	}
+}
+
 func findSkillByKey(db *sql.DB, key string) (Skill, error) {
 	row := db.QueryRow("SELECT key, name, description, logo, levels, tags FROM skills WHERE key = $1", key)
 
@@ -48,16 +59,7 @@ func findSkillByKey(db *sql.DB, key string) (Skill, error) {
 		return Skill{}, err
 	}
 
-	skill := Skill{
-		Key:         s.Key,
-		Name:        s.Name,
-		Description: s.Description,
-		Logo:        s.Logo,
-		Levels:      levels,
-		Tags:        s.Tags,
-	}
-
-	return skill, nil
+	return s.toSkill(levels), nil
 }
 
 func GetSkillByKey(db *sql.DB) gin.HandlerFunc {

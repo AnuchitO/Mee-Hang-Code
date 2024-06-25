@@ -38,10 +38,8 @@ type SkillStore struct {
 
 func (s SkillStore) levels() ([]Level, error) {
 	var levels []Level
-	if err := json.Unmarshal(s.Levels, &levels); err != nil {
-		return nil, err
-	}
-	return levels, nil
+	err := json.Unmarshal(s.Levels, &levels)
+	return levels, err
 }
 
 func (s SkillStore) toSkill(levels []Level) Skill {

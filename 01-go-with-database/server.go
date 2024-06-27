@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -28,7 +29,11 @@ type Skill struct {
 
 func main() {
 	r := gin.Default()
-	db, err := sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+
+	uri := os.Getenv("POSTGRES_URI")
+	db, err := sql.Open("postgres", uri)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +41,7 @@ func main() {
 
 	r.GET("/skills/:key", func(c *gin.Context) {
 		key := c.Param("key")
-		row := db.QueryRow("SELECT key, name, description, logo, levels, tags FROM skills WHERE key = $1", key)
+		row := db.QueryRow("SELECT key, name, description, logo, levels, tags FROM skill WHERE key = $1", key)
 
 		var skill Skill
 		var levels []byte
@@ -55,7 +60,7 @@ func main() {
 	})
 
 	r.GET("/skills", func(c *gin.Context) {
-		rows, err := db.Query("SELECT key, name, description, logo, levels, tags FROM skills")
+		rows, err := db.Query("SELECT key, name, description, logo, levels, tags FROM skill")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -109,5 +114,5 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{"data": skill})
 	})
-	r.Run(":8080")
+	r.Run("127.0.0.1:8080")
 }
